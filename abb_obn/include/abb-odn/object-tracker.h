@@ -4,11 +4,12 @@
 #include "abb-odn/object-view.h"
 #include "abb-odn/tracker-utils.h"
 
+#include <Eigen/Core>
 #include <iostream>
 #include <map>
 #include <memory>
-#include <vector>
 #include <queue>
+#include <vector>
 
 #include <darknet.h>
 #include <image_opencv.h>
@@ -21,23 +22,28 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 class Observation {
- public:
+public:
   Observation(ros::Time timestamp, unsigned x, unsigned y)
-    : timestamp_(timestamp), x_(x), y_(y) {};
+      : timestamp_(timestamp), x_(x), y_(y){};
+  const Eigen::Vector2d getCentroid() const {
+    Eigen::Vector2d centroid;
+    centroid << x_, y_;
+    return centroid;
+  };
   ros::Time timestamp_;
   unsigned x_, y_;
 };
 
 class ObjectTracker {
- public:
+public:
   explicit ObjectTracker(unsigned detector_period);
   ~ObjectTracker();
 
-  void processFrame(const cv::Mat& frame_bgr, const ros::Time& timestamp);
-  void debugDrawTracks(cv::Mat* frame_bgr);
-  bool getFinishedTrack(std::vector<Observation>* observations);
+  void processFrame(const cv::Mat &frame_bgr, const ros::Time &timestamp);
+  void debugDrawTracks(cv::Mat *frame_bgr);
+  bool getFinishedTrack(std::vector<Observation> *observations);
 
- private:
+private:
   unsigned frame_count_;
 
   unsigned detector_period_;
@@ -51,4 +57,4 @@ class ObjectTracker {
   std::queue<unsigned> finished_tracks_;
 };
 
-#endif  // OBJECT_TRACKER_OBJECT_TRACKER_H_
+#endif // OBJECT_TRACKER_OBJECT_TRACKER_H_

@@ -7,9 +7,11 @@
 #include <atomic>
 #include <mutex>
 
+#include <aslam/common/pose-types.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/Image.h>
+#include <vi-map/sensor-manager.h>
 
 class ObjectTrackingPipeline {
 public:
@@ -29,6 +31,8 @@ private:
 
   mutable std::mutex pose_buffer_mutex_;
   PoseBuffer pose_buffer_;
+
+  vi_map::SensorManager sensor_manager_;
 };
 
 #endif // OBJECT_TRACKING_PIPELINE_H_
