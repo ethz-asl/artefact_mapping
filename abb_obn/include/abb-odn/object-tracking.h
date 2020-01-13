@@ -6,5 +6,4 @@
 
 #include "abb-odn/object-tracker.h"
 
-
 #endif  // OBJECT_TRACKING_H_

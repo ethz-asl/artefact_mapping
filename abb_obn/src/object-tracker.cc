@@ -23,7 +23,8 @@ ObjectTracker::~ObjectTracker() {
   darknet::free_network(net);
 }
 
-void ObjectTracker::processFrame(const cv::Mat& frame_bgr) {
+void ObjectTracker::processFrame(
+    const cv::Mat& frame_bgr, const ros::Time& timestamp) {
   // Run trackers.
   bool lost_track;
   std::vector<unsigned> lost_track_ids;
@@ -32,18 +33,22 @@ void ObjectTracker::processFrame(const cv::Mat& frame_bgr) {
     KCFTracker& tracker = *(it.second);
 
     // Track for next frame
-    common::getChecked(tracks_, track_id)
-        .setBBox(tracker.update(frame_bgr, lost_track));
+    const cv::Rect& bbox = tracker.update(frame_bgr, lost_track);
+    common::getChecked(track_heads_, track_id).setBBox(bbox);
 
     // Drop tracker and track if we lost it
     if (lost_track) {
       lost_track_ids.emplace_back(track_id);
+      finished_tracks_.emplace(track_id);
+    } else {
+      tracks_[track_id].emplace_back(Observation(
+          timestamp, bbox.x + bbox.width / 2, bbox.y + bbox.height / 2));
     }
   }
 
   for (unsigned lost_track_id : lost_track_ids) {
     trackers_.erase(lost_track_id);
-    tracks_.erase(lost_track_id);
+    track_heads_.erase(lost_track_id);
   }
 
   // Run detector periodically.
@@ -119,7 +124,7 @@ void ObjectTracker::processFrame(const cv::Mat& frame_bgr) {
         double best_iou = 0.0f;
         unsigned track_id;
         cv::Rect prev_bbox;
-        for (const auto& track_id_with_bbox : tracks_) {
+        for (const auto& track_id_with_bbox : track_heads_) {
           const cv::Rect& other_bbox = track_id_with_bbox.second.getBBox();
           double iou = compute_iou(init_bbox, other_bbox);
           if (iou > best_iou) {
@@ -129,25 +134,27 @@ void ObjectTracker::processFrame(const cv::Mat& frame_bgr) {
           }
         }
 
-        LOG(INFO) << best_iou;
         if (best_iou < 0.3) {
           // Create new track and tracker
           track_id = last_track_id_++;
           trackers_.emplace(
               track_id, std::unique_ptr<KCFTracker>(
                             new KCFTracker(true, true, true, false, 0.8)));
-          tracks_.emplace(track_id, ObjectView(track_id, cls, init_bbox));
+          track_heads_.emplace(track_id, ObjectView(track_id, cls, init_bbox));
         } else {
           /*std::cout << "Re-initialised tracker " << track_id << " from: ["
                     << prev_bbox.x << ", " << prev_bbox.y << ", "
                     << prev_bbox.width << ", " << prev_bbox.height << "] to: ["
                     << x_min << ", " << y_min << ", " << width << ", " << height
                     << "] with IoU of " << best_iou << "." << std::endl;*/
-          common::getChecked(tracks_, track_id).setBBox(init_bbox);
+          common::getChecked(track_heads_, track_id).setBBox(init_bbox);
         }
 
         // Initialize track
         trackers_[track_id]->init(init_bbox, frame_bgr);
+        tracks_[track_id].emplace_back(Observation(
+            timestamp, init_bbox.x + init_bbox.width / 2,
+            init_bbox.y + init_bbox.height / 2));
       }
     }
 
@@ -158,11 +165,25 @@ void ObjectTracker::processFrame(const cv::Mat& frame_bgr) {
 }
 
 void ObjectTracker::debugDrawTracks(cv::Mat* frame_bgr) {
-  for (auto const& it : tracks_) {
+  for (auto const& it : track_heads_) {
     const cv::Rect& bbox = it.second.getBBox();
     cv::rectangle(
         *frame_bgr, cv::Point(bbox.x, bbox.y),
         cv::Point(bbox.x + bbox.width, bbox.y + bbox.height),
         CV_RGB(0, 255, 0));
   }
+}
+
+bool ObjectTracker::getFinishedTrack(std::vector<Observation>* observations) {
+  if (finished_tracks_.empty()) {
+    return false;
+  }
+
+  unsigned track_id = finished_tracks_.front();
+  *observations = common::getChecked(tracks_, track_id);
+
+  finished_tracks_.pop();
+  trackers_.erase(track_id);
+
+  return true;
 }

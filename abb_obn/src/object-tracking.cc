@@ -89,7 +89,6 @@ public:
 
     ros::Subscriber pose_subscriber =
         nh_.subscribe("/T_G_I", 1000u, &ObjectTracking::poseCallback, this);
-    ;
   }
 
 private:
@@ -100,7 +99,12 @@ private:
         cv_bridge::toCvShare(image_message, sensor_msgs::image_encodings::BGR8);
 
     cv::Mat image = cv_ptr->image.clone();
-    tracker_.processFrame(image);
+    tracker->processFrame(image, image_message->header.stamp);
+
+    std::vector<Observation> observations;
+    while (tracker->getFinishedTrack(&observations)) {
+      // Do something with the observations
+    }
 
     cv::Mat debug_image = image;
     tracker_.debugDrawTracks(&debug_image);
