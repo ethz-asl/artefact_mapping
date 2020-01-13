@@ -17,6 +17,7 @@
   <depend>opencv3_catkin</depend>
   <depend>rosbag</depend>
   <depend>roscpp</depend>
+  <depend>aslam_cv_triangulation</depend>
   <depend>maplab_common</depend>
   <depend>cv_bridge</depend>
   <depend>image_transport</depend>

@@ -1,3 +1,5 @@
+#include "abb-odn/object-tracking-pipeline.h"
+
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
@@ -22,10 +24,11 @@ ObjectTrackingPipeline::ObjectTrackingPipeline(ros::NodeHandle &node_handle)
     : nh_(node_handle), it_(node_handle),
       pose_buffer_(FLAGS_object_tracker_pose_buffer_length_ns),
       tracker_(FLAGS_object_tracker_detection_period) {
-  image_subscriber_ = it_.subscribe(FLAGS_object_tracker_image_topic, 200u,
-                                    &ObjectTracking::imageCallback, this);
-  pose_subscriber_ =
-      nh_.subscribe("/T_G_I", 1000u, &ObjectTracking::poseCallback, this);
+  image_subscriber_ =
+      it_.subscribe(FLAGS_object_tracker_image_topic, 200u,
+                    &ObjectTrackingPipeline::imageCallback, this);
+  pose_subscriber_ = nh_.subscribe("/T_G_I", 1000u,
+                                   &ObjectTrackingPipeline::poseCallback, this);
   landmark_publisher_ = nh_.advertise<geometry_msgs::Vector3>("/W_landmark", 1);
 }
 
@@ -59,14 +62,15 @@ void ObjectTrackingPipeline::poseCallback(
 
 void ObjectTrackingPipeline::triangulateTracks(
     const std::vector<Observation> &observations) {
-  aslam::FeatureTrack track;
-  aslam::TransformationVector T_W_Bs;
-  Eigen::Vector3d W_landmark;
-  aslam::TriangulationResult result =
-      triangulateFeatureTrack(track, T_W_Bs, W_landmark);
-  geometry_msgs::Vector3 landmark_msg;
-  landmark_msg.x = W_landmark[0];
-  landmark_msg.y = W_landmark[1];
-  landmark_msg.z = W_landmark[2];
-  landmark_publisher_.publish(landmark_msg);
+  /* TODO CONVERTION */
+  // aslam::FeatureTrack track;
+  // aslam::TransformationVector T_W_Bs;
+  // Eigen::Vector3d W_landmark;
+  // aslam::TriangulationResult result =
+  //     triangulateFeatureTrack(track, T_W_Bs, W_landmark);
+  // geometry_msgs::Vector3 landmark_msg;
+  // landmark_msg.x = W_landmark[0];
+  // landmark_msg.y = W_landmark[1];
+  // landmark_msg.z = W_landmark[2];
+  // landmark_publisher_.publish(landmark_msg);
 }
