@@ -28,7 +28,12 @@ void imageCallback(
       image_message, sensor_msgs::image_encodings::BGR8);
 
   cv::Mat image = cv_ptr->image.clone();
-  tracker->processFrame(image);
+  tracker->processFrame(image, image_message->header.stamp);
+
+  std::vector<Observation> observations;
+  while (tracker->getFinishedTrack(&observations)) {
+    // Do something with the observations
+  }
 
   cv::Mat debug_image = image;
   tracker->debugDrawTracks(&debug_image);
@@ -52,7 +57,6 @@ int main(int argc, char** argv) {
       FLAGS_object_tracker_detection_period));
 
   // Image topic subscriber
-  image_transport::Subscriber sub_image_;
   image_transport::ImageTransport image_transport_(nh);
 
   boost::function<void(const sensor_msgs::ImageConstPtr&)> image_callback =
