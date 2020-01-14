@@ -18,7 +18,7 @@ DEFINE_int64(object_tracker_detection_period, 20,
 DEFINE_int64(object_tracker_pose_buffer_length_ns, 1000000,
              "Time of buffered poses.");
 
-DEFINE_string(object_tracker_image_topic, "/cam0/image_raw",
+DEFINE_string(object_tracker_image_topic, "/camera/color/image_raw",
               "Ros topic on which the object detection and tracking happens");
 DEFINE_string(sensor_calibration_file, "", "Path to sensor calibration yaml.");
 
