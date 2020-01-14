@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <iomanip>
 
 #include <aslam/common/pose-types.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -16,7 +17,7 @@ public:
   PoseBuffer(uint64_t buffer_length_ns) : buffer_(buffer_length_ns) { reset(); }
 
   void addValue(const geometry_msgs::PoseStamped &pose) {
-    uint64_t timestamp_nanoseconds =
+    int64_t timestamp_nanoseconds =
         pose.header.stamp.sec * 1e9 + pose.header.stamp.nsec;
     aslam::Position3D position(pose.pose.position.x, pose.pose.position.y,
                                pose.pose.position.z);
@@ -32,17 +33,23 @@ public:
       CHECK_GT(timestamp_nanoseconds, last_time)
           << "Timestamps not strictly increasing.";
     }
-    VLOG(1) << "Add value " << pose_aslam << " with timestamp "
-            << timestamp_nanoseconds;
+    VLOG(3) << "Add value " << pose_aslam << " with timestamp "
+             << std::fixed << std::setprecision(15) << (double)timestamp_nanoseconds / 1e9;
     buffer_.addValue(timestamp_nanoseconds, pose_aslam);
   }
 
-  void interpolatePoseAtTimestamp(ros::Time timestamp,
+  bool interpolatePoseAtTimestamp(ros::Time timestamp,
                                   aslam::Transformation *interpolated_pose) {
-    buffer_.interpolateAt(timestamp.sec * 1e9 + timestamp.nsec,
+    std::lock_guard<std::mutex> lock(m_buffer_);
+    int64_t timestamp_nanoseconds = timestamp.sec * 1e9 + timestamp.nsec;
+    int64_t newest_time, oldest_time;
+    buffer_.getOldestTime(&oldest_time);
+    buffer_.getNewestTime(&newest_time);
+    bool success = buffer_.interpolateAt(timestamp_nanoseconds,
                           interpolated_pose);
-    VLOG(1) << "Interpolate pose is " << &interpolated_pose
-            << " with timestamp " << timestamp.sec * 1e9 + timestamp.nsec;
+    VLOG(2) << "Interpolation " << (success ? "successfull " : "failed ") <<  "pose is " << *interpolated_pose
+            << " with timestamp " << timestamp.sec << "." << timestamp.nsec;
+    return success;
   }
 
   void clearBefore(const ros::Time &timestamp) {

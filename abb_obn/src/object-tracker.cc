@@ -68,7 +68,7 @@ void ObjectTracker::processFrame(
     darknet::network_predict(net, im.data);
 
     int nboxes = 0;
-    float thresh = 0.6f;
+    float thresh = 0.4f;
     float nms = 0.45f;
     darknet::detection* dets = darknet::get_network_boxes(
         &net, frame_bgr.cols, frame_bgr.rows, thresh, 0.5f, 0, 1, &nboxes, 0);
@@ -91,10 +91,10 @@ void ObjectTracker::processFrame(
 
       // Initialize tracker for each new detection.
       if (cls == 46 /* banana */) {
-        /*LOG(INFO) << "Found with objectness: " << dets[i].objectness * 100
+        LOG(INFO) << "Found with objectness: " << dets[i].objectness * 100
                   << "\%"
                   << " class " << cls << " (" << prob * 100 << "\%)"
-                  << std::endl;*/
+                  << std::endl;
 
         int x_min = (dets[i].bbox.x - dets[i].bbox.w / 2) * frame_bgr.cols;
         int y_min = (dets[i].bbox.y - dets[i].bbox.h / 2) * frame_bgr.rows;
@@ -180,7 +180,13 @@ bool ObjectTracker::getFinishedTrack(std::vector<Observation>* observations) {
   }
 
   unsigned track_id = finished_tracks_.front();
-  *observations = common::getChecked(tracks_, track_id);
+
+  const std::vector<Observation>& local_observations = common::getChecked(tracks_, track_id);
+  VLOG(2) << local_observations.size();
+  for (const Observation& observation : local_observations) {
+    observations->push_back(observation);
+    VLOG(2) << observation.getCentroid();
+  }
 
   finished_tracks_.pop();
   trackers_.erase(track_id);
