@@ -78,7 +78,6 @@ void ObjectTrackingPipeline::triangulateTracks(
   aslam::TransformationVector T_W_Bs;
   Aligned<std::vector, Eigen::Vector2d> normalized_measurements;
   normalized_measurements.reserve(observations.size());
-  T_W_Bs.reserve(observations.size());
 
   const aslam::Camera::ConstPtr camera =
       vi_map::getSelectedNCamera(sensor_manager_)->getCameraShared(0u);
@@ -86,16 +85,24 @@ void ObjectTrackingPipeline::triangulateTracks(
   aslam::Transformation T_B_C =
       vi_map::getSelectedNCamera(sensor_manager_)->get_T_C_B(0u).inverse();
   for (const Observation &observation : observations) {
+    VLOG(1) << "Add observation with ts " << observation.timestamp_.sec << "." << observation.timestamp_.nsec;
     aslam::Transformation T_W_B;
     if (!pose_buffer_.interpolatePoseAtTimestamp(observation.timestamp_, &T_W_B)) {
       continue;
     }
-    T_W_Bs.emplace_back(T_W_B);
 
     // Obtain the normalized keypoint measurements.;
     Eigen::Vector3d C_ray;
-    camera->backProject3(observation.getCentroid(), &C_ray);
+    Eigen::Vector2d centroid = observation.getCentroid();
+    if(centroid[0] > camera->imageWidth()|| centroid[1] > camera->imageHeight()) {
+      continue;
+      VLOG(1) << "Observation outside camera " << centroid;
+    }
+
+    camera->backProject3(centroid, &C_ray);
     Eigen::Vector2d normalized_measurement = C_ray.head<2>() / C_ray[2];
+
+    T_W_Bs.emplace_back(T_W_B);
     normalized_measurements.emplace_back(normalized_measurement);
   }
 

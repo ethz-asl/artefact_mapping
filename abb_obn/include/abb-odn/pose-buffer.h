@@ -40,11 +40,11 @@ public:
 
   bool interpolatePoseAtTimestamp(ros::Time timestamp,
                                   aslam::Transformation *interpolated_pose) {
-    std::lock_guard<std::mutex> lock(m_buffer_);
     int64_t timestamp_nanoseconds = timestamp.sec * 1e9 + timestamp.nsec;
     int64_t newest_time, oldest_time;
     buffer_.getOldestTime(&oldest_time);
     buffer_.getNewestTime(&newest_time);
+    VLOG(2) << std::fixed << std::setprecision(15) << (double)newest_time / 1e9 <<  " vs " <<  std::fixed << std::setprecision(15) << (double)oldest_time / 1e9;
     bool success = buffer_.interpolateAt(timestamp_nanoseconds,
                           interpolated_pose);
     VLOG(2) << "Interpolation " << (success ? "successfull " : "failed ") <<  "pose is " << *interpolated_pose
