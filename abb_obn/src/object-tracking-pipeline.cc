@@ -20,7 +20,7 @@ DEFINE_int64(object_tracker_pose_buffer_length_ns, 20e9,
 
 DEFINE_string(object_tracker_image_topic, "/camera/color/image_raw",
               "Ros topic on which the object detection and tracking happens");
-DEFINE_string(sensor_calibration_file, "", "Path to sensor calibration yaml.");
+DEFINE_string(sensor_calibration_file, "share/camchain.yaml", "Path to sensor calibration yaml.");
 
 ObjectTrackingPipeline::ObjectTrackingPipeline(ros::NodeHandle &node_handle)
     : nh_(node_handle), it_(node_handle),
