@@ -1,0 +1,45 @@
+sensors:
+  - id: 412eab8e4058621f7036b5e765dfe812
+    sensor_type: NCAMERA
+    description: "Mobmi hand camera"
+    topic: ""
+    cameras:
+      - camera:
+          topic: /camera/color/
+          description: "Mobmi hand camera"
+          id: 54812562fa109c40fe90b29a59dd7798
+          sensor_type: CAMERA
+          line-delay-nanoseconds: 0
+          image_height: 480
+          image_width: 640
+          type: pinhole
+          intrinsics:
+            cols: 1
+            rows: 4
+            data: [606.0969903184573, 608.0504222383827, 317.4038972666458, 245.41296405358113]
+          distortion:
+            type: equidistant
+            parameters:
+              cols: 1
+              rows: 4
+              data: [0.31046116596215345, 1.765731308151048, -8.889127593142465, 13.270663781496193]
+        T_B_C:
+          cols: 4
+          rows: 4
+          data:
+            - [-0.8225101351776891, -0.5687139131482495, 0.006446900153158406, -0.02776544]
+            - [0.1218248340980539,  -0.1872402789941025,  -0.9747306231565683, -1.31159864]
+            - [0.5555499863441283,  -0.800940424072737, 0.2232905053046882,  0.88365396]
+            - [0.0, 0.0, 0.0, 1.0]
+
+extrinsics:
+  - sensor_id: 412eab8e4058621f7036b5e765dfe812
+    base_sensor_id: 412eab8e4058621f7036b5e765dfe812
+    T_B_S:
+      rows: 4
+      cols: 4
+      data:
+        - [1,0,0,0]
+        - [0,1,0,0]
+        - [0,0,1,0]
+        - [0,0,0,1]

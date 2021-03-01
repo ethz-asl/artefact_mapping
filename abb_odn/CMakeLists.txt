@@ -11,6 +11,7 @@ add_definitions(-fPIC -shared)
 #############
 set(SOURCES
   src/object-tracking.cc
+  src/object-tracking-pipeline.cc
   src/object-tracker.cc
   src/tracker-utils.cc
 )
