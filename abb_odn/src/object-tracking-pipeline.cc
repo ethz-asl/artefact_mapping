@@ -61,11 +61,11 @@ void ObjectTrackingPipeline::imageCallback(
     triangulateTracks(observations);
   }
 
-  cv::Mat debug_image = image;
-  tracker_.debugDrawTracks(&debug_image);
+  // cv::Mat debug_image = image;
+  // tracker_.debugDrawTracks(&debug_image);
 
-  cv::imshow("Image", image);
-  cv::waitKey(1);
+  // cv::imshow("Image", image);
+  // cv::waitKey(1);
 }
 
 void ObjectTrackingPipeline::poseCallback(
