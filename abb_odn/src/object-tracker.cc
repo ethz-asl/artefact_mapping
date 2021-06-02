@@ -39,7 +39,10 @@ void ObjectTracker::processFrame(
     // Drop tracker and track if we lost it
     if (lost_track) {
       lost_track_ids.emplace_back(track_id);
-      finished_tracks_.emplace(track_id);
+      const std::vector<Observation>& observations = common::getChecked(tracks_, track_id);
+      if (observations.size() > 20) {
+        finished_tracks_.emplace(track_id);
+      }
     } else {
       tracks_[track_id].emplace_back(Observation(
           timestamp, bbox.x + bbox.width / 2, bbox.y + bbox.height / 2));
