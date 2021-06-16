@@ -11,6 +11,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <vi-map/sensor-manager.h>
 #include <vi-map/sensor-utils.h>
+#include <minkindr_conversions/kindr_tf.h>
 
 DEFINE_int64(object_tracker_detection_period, 20,
              "Number of frames to skip between object detections");
@@ -29,9 +30,10 @@ ObjectTrackingPipeline::ObjectTrackingPipeline(ros::NodeHandle &node_handle)
   image_subscriber_ =
       it_.subscribe(FLAGS_object_tracker_image_topic, 200u,
                     &ObjectTrackingPipeline::imageCallback, this);
-  pose_subscriber_ = nh_.subscribe("/T_G_I", 1000u,
-                                   &ObjectTrackingPipeline::poseCallback, this);
+  //pose_subscriber_ = nh_.subscribe("/T_G_I", 1000u,
+  //                                 &ObjectTrackingPipeline::poseCallback, this);
   landmark_publisher_ = nh_.advertise<geometry_msgs::PointStamped>("/W_landmark", 1);
+  tf_listener_ = new tf::TransformListener(ros::Duration(600));
 
   // Load sensors.
   CHECK(!FLAGS_sensor_calibration_file.empty())
@@ -48,7 +50,6 @@ ObjectTrackingPipeline::ObjectTrackingPipeline(ros::NodeHandle &node_handle)
 void ObjectTrackingPipeline::imageCallback(
     const sensor_msgs::ImageConstPtr &image_message) {
 
-  CHECK(image_message->encoding == sensor_msgs::image_encodings::RGB8);
   cv_bridge::CvImageConstPtr cv_ptr =
       cv_bridge::toCvShare(image_message, sensor_msgs::image_encodings::BGR8);
 
@@ -86,10 +87,19 @@ void ObjectTrackingPipeline::triangulateTracks(
       vi_map::getSelectedNCamera(sensor_manager_)->get_T_C_B(0u).inverse();
   for (const Observation &observation : observations) {
     VLOG(1) << "Add observation with ts " << observation.timestamp_.sec << "." << observation.timestamp_.nsec;
-    aslam::Transformation T_W_B;
-    if (!pose_buffer_.interpolatePoseAtTimestamp(observation.timestamp_, &T_W_B)) {
-      continue;
+
+    tf::StampedTransform transform;
+    try {
+      tf_listener_->lookupTransform("/odom", "/camera_odom_frame",
+          observation.timestamp_, transform);
     }
+    catch (tf::TransformException ex) {
+      ROS_ERROR("%s", ex.what());
+      return;
+    }
+
+    aslam::Transformation T_W_B;
+    tf::transformTFToKindr(transform, &T_W_B);
 
     // Obtain the normalized keypoint measurements.;
     Eigen::Vector3d C_ray;
@@ -117,7 +127,7 @@ void ObjectTrackingPipeline::triangulateTracks(
   VLOG(1) << "Triangulated landmark at " << W_landmark;
 
   geometry_msgs::PointStamped landmark_msg;
-  landmark_msg.header.frame_id = "map";
+  landmark_msg.header.frame_id = "odom";
   landmark_msg.header.stamp = observations.back().timestamp_;
   landmark_msg.point.x = W_landmark[0];
   landmark_msg.point.y = W_landmark[1];

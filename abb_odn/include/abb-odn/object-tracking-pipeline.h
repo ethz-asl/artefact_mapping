@@ -12,6 +12,7 @@
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/Image.h>
 #include <vi-map/sensor-manager.h>
+#include <tf/transform_listener.h>
 
 class ObjectTrackingPipeline {
 public:
@@ -28,8 +29,7 @@ private:
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_subscriber_;
   ObjectTracker tracker_;
-
-  mutable std::mutex pose_buffer_mutex_;
+  tf::TransformListener* tf_listener_;
   PoseBuffer pose_buffer_;
 
   vi_map::SensorManager sensor_manager_;

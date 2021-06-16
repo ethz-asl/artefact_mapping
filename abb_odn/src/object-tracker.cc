@@ -90,7 +90,7 @@ void ObjectTracker::processFrame(
       }
 
       // Initialize tracker for each new detection.
-      if (cls == 46 /* banana */) {
+      if (cls == 62 /* tvscreen */ || cls == 2 /* car */) {
         LOG(INFO) << "Found with objectness: " << dets[i].objectness * 100
                   << "\%"
                   << " class " << cls << " (" << prob * 100 << "\%)"
