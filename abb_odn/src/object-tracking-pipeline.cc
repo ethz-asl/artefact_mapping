@@ -65,6 +65,7 @@ void ObjectTrackingPipeline::imageCallback(
   cv::Mat debug_image = image;
   tracker_.debugDrawTracks(&debug_image);
 
+  cv::resize(image, image, cv::Size(1024, 768));
   cv::imshow("Image", image);
   cv::waitKey(1);
 }
@@ -76,6 +77,7 @@ void ObjectTrackingPipeline::poseCallback(
 
 void ObjectTrackingPipeline::triangulateTracks(
     const std::vector<Observation> &observations) {
+  return;
   aslam::TransformationVector T_W_Bs;
   Aligned<std::vector, Eigen::Vector2d> normalized_measurements;
   normalized_measurements.reserve(observations.size());
@@ -90,7 +92,7 @@ void ObjectTrackingPipeline::triangulateTracks(
 
     tf::StampedTransform transform;
     try {
-      tf_listener_->lookupTransform("/odom", "/camera_odom_frame",
+      tf_listener_->lookupTransform("/odom", "/blackfly_right_optical_link",
           observation.timestamp_, transform);
     }
     catch (tf::TransformException ex) {
