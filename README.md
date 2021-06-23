@@ -1,4 +1,5 @@
 # artefact_mapping
+Detection, tracking, and mapping of object artefacts
 
 ## Install
 ### ROS and system dependencies
