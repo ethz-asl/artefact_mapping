@@ -1,4 +1,4 @@
-#include "abb-odn/object-tracking-pipeline.h"
+#include "artefact-mapping/object-tracking-pipeline.h"
 
 #include <gflags/gflags.h>
 #include <glog/logging.h>

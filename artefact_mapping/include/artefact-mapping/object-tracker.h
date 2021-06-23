@@ -1,8 +1,8 @@
 #ifndef OBJECT_TRACKER_OBJECT_TRACKER_H_
 #define OBJECT_TRACKER_OBJECT_TRACKER_H_
 
-#include "abb-odn/object-view.h"
-#include "abb-odn/tracker-utils.h"
+#include "artefact-mapping/object-view.h"
+#include "artefact-mapping/tracker-utils.h"
 
 #include <Eigen/Core>
 #include <iostream>

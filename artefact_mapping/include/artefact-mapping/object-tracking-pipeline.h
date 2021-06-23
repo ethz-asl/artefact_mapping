@@ -1,8 +1,8 @@
 #ifndef OBJECT_TRACKING_PIPELINE_H_
 #define OBJECT_TRACKING_PIPELINE_H_
 
-#include "abb-odn/object-tracker.h"
-#include "abb-odn/pose-buffer.h"
+#include "artefact-mapping/object-tracker.h"
+#include "artefact-mapping/pose-buffer.h"
 
 #include <atomic>
 #include <mutex>
