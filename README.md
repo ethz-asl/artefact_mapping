@@ -45,6 +45,12 @@ catkin build artefact_mapping
 ```
 
 ## Running the node
+### Source the workspace
+```bash
+source ~/artefact_mapping_ws/devel/setup.bash
+```
+
+### Start mapping artefacts
 Adapt the smb name in the command below to the correct SMB number and run to start the object mapping node.
 ```
 rosrun artefact_mapping artefact_mapping \
