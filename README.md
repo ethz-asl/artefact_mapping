@@ -43,3 +43,16 @@ cd src
 git clone https://github.com/ethz-asl/artefact_mapping.git --recursive -b summer_school2021
 catkin build artefact_mapping
 ```
+
+### Running the node
+Adapt the smb name in the command below to the correct SMB number and run to start the object mapping node.
+```
+rosrun abb_odn abb_odn \
+  --object_tracker_image_topic=/versavis/cam0/image_raw \
+  --sensor_calibration_file=~/artefact_mapping_ws/src/artefact_mapping/artefact_mapping/share/camchain-smbXXX.yaml
+  --darknet_cfg_path=~/artefact_mapping_ws/src/artefact_mapping/artefact_mapping/share/yolov3-tiny.cfg \
+  --darknet_weights_path=~/artefact_mapping_ws/src/artefact_mapping/artefact_mappingshare/yolov3-tiny.weights
+```
+Detections will be published on the `W_landmark` topic in the odometry frame.
+
+
