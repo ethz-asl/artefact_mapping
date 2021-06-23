@@ -1,4 +1,5 @@
 # artefact_mapping
+Detection, tracking, and mapping of object artefacts
 
 ## Install
 ### ROS and system dependencies
@@ -14,7 +15,6 @@ rosdep update
 echo ". /opt/ros/noetic/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 
-
 sudo apt install autotools-dev doxygen dh-autoreconf git git-lfs liblapack-dev libblas-dev libgtest-dev libreadline-dev libssh2-1-dev clang-format-6.0 python3-autopep8 python3-catkin-tools python3-pip python3-git python-setuptools python3-termcolor python3-wstool libatlas3-base --yes
 
 pip install -U requests
@@ -27,8 +27,8 @@ ccache --max-size=10G
 
 ### Setup catkin workspace
 ```bash
-mkdir -p $CATKIN_WS/src
-cd $CATKIN_WS
+mkdir -p artefact_mapping_ws/src
+cd artefact_mapping_ws
 catkin init
 catkin config --merge-devel # Necessary for catkin_tools >= 0.4.
 catkin config --extend /opt/ros/noetic
