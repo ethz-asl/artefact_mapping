@@ -1,6 +1,6 @@
 [submodule "dependencies/darknet_catkin"]
 	path = dependencies/darknet_catkin
-	url = git@github.com:ethz-asl/darknet_catkin.git
+	url = https://github.com/ethz-asl/darknet_catkin.git
 [submodule "dependencies/kcf_catkin"]
 	path = dependencies/kcf_catkin
-	url = git@github.com:ethz-asl/kcf_catkin.git
+	url = https://github.com/ethz-asl/kcf_catkin.git
