@@ -1,0 +1,9 @@
+<launch>
+  <arg name="smb_number" default="262"/>
+  <node name="artefact_mapping" pkg="artefact_mapping" type="artefact_mapping" >
+    <param name="object_tracker_image_topic" value="/versavis/cam0/image_raw"/>
+    <param name="sensor_calibration_file" value="$(find artefact_mapping)/share/camchain-smb$(arg smb_number).yaml"/>
+    <param name="darknet_cfg_path" value="$(find artefact_mapping)/share/yolov3-tiny.cfg"/>
+    <param name="darknet_weights_path" value="$(find artefact_mapping)/share/yolov3-tiny.weights"/>
+  </node>  
+</launch>
