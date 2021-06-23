@@ -15,7 +15,9 @@ rosdep update
 echo ". /opt/ros/noetic/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 
-sudo apt install autotools-dev doxygen dh-autoreconf git git-lfs liblapack-dev libblas-dev libgtest-dev libreadline-dev libssh2-1-dev clang-format-6.0 python3-autopep8 python3-catkin-tools python3-pip python3-git python-setuptools python3-termcolor python3-wstool libatlas3-base python-is-python3 --yes
+sudo apt install autotools-dev doxygen dh-autoreconf git git-lfs liblapack-dev libblas-dev libgtest-dev \
+libreadline-dev libssh2-1-dev clang-format-6.0 python3-autopep8 python3-catkin-tools python3-pip python3-git \
+python-setuptools python3-termcolor python3-wstool libatlas3-base python-is-python3 --yes
 
 pip install -U requests
 
