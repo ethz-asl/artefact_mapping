@@ -51,7 +51,7 @@ void ObjectTrackingPipeline::imageCallback(
     const sensor_msgs::ImageConstPtr &image_message) {
 
   cv_bridge::CvImageConstPtr cv_ptr =
-      cv_bridge::toCvShare(image_message, sensor_msgs::image_encodings::BGR8);
+      cv_bridge::toCvShare(image_message, sensor_msgs::image_encodings::RGB8);
 
   cv::Mat image = cv_ptr->image.clone();
   tracker_.processFrame(image, image_message->header.stamp);
@@ -77,7 +77,6 @@ void ObjectTrackingPipeline::poseCallback(
 
 void ObjectTrackingPipeline::triangulateTracks(
     const std::vector<Observation> &observations) {
-  return;
   aslam::TransformationVector T_W_Bs;
   Aligned<std::vector, Eigen::Vector2d> normalized_measurements;
   normalized_measurements.reserve(observations.size());
