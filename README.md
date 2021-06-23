@@ -47,7 +47,7 @@ catkin build artefact_mapping
 ## Running the node
 Adapt the smb name in the command below to the correct SMB number and run to start the object mapping node.
 ```
-rosrun abb_odn abb_odn \
+rosrun artefact_mapping artefact_mapping \
   --object_tracker_image_topic=/versavis/cam0/image_raw \
   --sensor_calibration_file=~/artefact_mapping_ws/src/artefact_mapping/artefact_mapping/share/camchain-smbXXX.yaml
   --darknet_cfg_path=~/artefact_mapping_ws/src/artefact_mapping/artefact_mapping/share/yolov3-tiny.cfg \
