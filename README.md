@@ -51,14 +51,10 @@ source ~/artefact_mapping_ws/devel/setup.bash
 ```
 
 ### Start mapping artefacts
-Adapt the smb name in the command below to the correct SMB number and run to start the object mapping node.
+Adapt the smb name in the launch file below to the correct SMB number and run to start the object mapping node.
 ```
-rosrun artefact_mapping artefact_mapping \
-  --object_tracker_image_topic=/versavis/cam0/image_raw \
-  --sensor_calibration_file=~/artefact_mapping_ws/src/artefact_mapping/artefact_mapping/share/camchain-smbXXX.yaml \
-  --darknet_cfg_path=~/artefact_mapping_ws/src/artefact_mapping/artefact_mapping/share/yolov3-tiny.cfg \
-  --darknet_weights_path=~/artefact_mapping_ws/src/artefact_mapping/artefact_mapping/share/yolov3-tiny.weights
+roslaunch artefact_mapping artefact_mapping.launch
 ```
-Detections will be published on the `W_landmark` topic in the odometry frame.
+Detections will be published on the `W_landmark` topic in the odometry frame. Other parameters can also be adapted in the launch file
 
 

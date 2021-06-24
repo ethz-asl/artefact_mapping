@@ -2,7 +2,7 @@
 <package format="2">
   <name>artefact_mapping</name>
   <version>0.0.1</version>
-  <description>ABB demo object detection node</description>
+  <description>Artefaction mapping node</description>
 
   <maintainer email="maplab-dev@mavt.ethz.ch">maplab-developers</maintainer>
   <license>Apache 2.0</license>
@@ -20,6 +20,7 @@
   <depend>rosbag</depend>
   <depend>roscpp</depend>
   <depend>maplab_common</depend>
+  <depend>maplab_ros_common</depend>
   <depend>cv_bridge</depend>
   <depend>image_transport</depend>
   <depend>minkindr_conversions</depend>
