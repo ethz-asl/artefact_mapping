@@ -2,13 +2,11 @@
 #define OBJECT_TRACKING_PIPELINE_H_
 
 #include "artefact-mapping/object-tracker.h"
-#include "artefact-mapping/pose-buffer.h"
 
 #include <atomic>
 #include <mutex>
 
 #include <aslam/common/pose-types.h>
-#include <geometry_msgs/PoseStamped.h>
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/Image.h>
 #include <vi-map/sensor-manager.h>
@@ -28,9 +26,9 @@ private:
   ros::Publisher landmark_publisher_;
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_subscriber_;
+  image_transport::Publisher debug_image_publisher_;
   ObjectTracker tracker_;
   tf::TransformListener* tf_listener_;
-  PoseBuffer pose_buffer_;
 
   vi_map::SensorManager sensor_manager_;
 };

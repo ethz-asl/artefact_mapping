@@ -15,25 +15,32 @@
 
 DEFINE_int64(object_tracker_detection_period, 20,
              "Number of frames to skip between object detections");
-
-DEFINE_int64(object_tracker_pose_buffer_length_ns, 20e9,
+DEFINE_int64(object_tracker_pose_buffer_length, 600,
              "Time of buffered poses.");
+DEFINE_int64(image_topic_buffer_size, 200, "Size of image topic buffer.");
 
 DEFINE_string(object_tracker_image_topic, "/camera/color/image_raw",
               "Ros topic on which the object detection and tracking happens");
-DEFINE_string(sensor_calibration_file, "share/camchain.yaml", "Path to sensor calibration yaml.");
+DEFINE_string(sensor_calibration_file, "share/camchain.yaml",
+              "Path to sensor calibration yaml.");
+
+DEFINE_bool(publish_debug_images, false,
+            "Whether to publish the debug image with tracking information.");
 
 ObjectTrackingPipeline::ObjectTrackingPipeline(ros::NodeHandle &node_handle)
     : nh_(node_handle), it_(node_handle),
-      pose_buffer_(FLAGS_object_tracker_pose_buffer_length_ns),
       tracker_(FLAGS_object_tracker_detection_period) {
   image_subscriber_ =
-      it_.subscribe(FLAGS_object_tracker_image_topic, 200u,
+      it_.subscribe(FLAGS_object_tracker_image_topic,
+                    FLAGS_image_topic_buffer_size,
                     &ObjectTrackingPipeline::imageCallback, this);
-  //pose_subscriber_ = nh_.subscribe("/T_G_I", 1000u,
-  //                                 &ObjectTrackingPipeline::poseCallback, this);
+  if (FLAGS_publish_debug_images) {
+      debug_image_publisher_ = it_.advertise("/artefact_mapping/debug_image", 1);
+  }
+
   landmark_publisher_ = nh_.advertise<geometry_msgs::PointStamped>("/W_landmark", 1);
-  tf_listener_ = new tf::TransformListener(ros::Duration(600));
+  tf_listener_ = new tf::TransformListener(
+      ros::Duration(FLAGS_object_tracker_pose_buffer_length));
 
   // Load sensors.
   CHECK(!FLAGS_sensor_calibration_file.empty())
@@ -50,11 +57,13 @@ ObjectTrackingPipeline::ObjectTrackingPipeline(ros::NodeHandle &node_handle)
 void ObjectTrackingPipeline::imageCallback(
     const sensor_msgs::ImageConstPtr &image_message) {
 
-  cv_bridge::CvImageConstPtr cv_ptr =
-      cv_bridge::toCvShare(image_message, sensor_msgs::image_encodings::RGB8);
+  cv_bridge::CvImagePtr cv_ptr =
+      cv_bridge::toCvCopy(image_message, sensor_msgs::image_encodings::RGB8);
+  // Image message seems to be misconfigured
+  // when requesting rgb the image we get is actually bgr
+  cv_ptr->encoding = "bgr8";
 
-  cv::Mat image = cv_ptr->image.clone();
-  tracker_.processFrame(image, image_message->header.stamp);
+  tracker_.processFrame(cv_ptr->image, image_message->header.stamp);
 
   std::vector<Observation> observations;
   while (tracker_.getFinishedTrack(&observations)) {
@@ -62,17 +71,10 @@ void ObjectTrackingPipeline::imageCallback(
     triangulateTracks(observations);
   }
 
-  cv::Mat debug_image = image;
-  tracker_.debugDrawTracks(&debug_image);
-
-  cv::resize(image, image, cv::Size(1024, 768));
-  cv::imshow("Image", image);
-  cv::waitKey(1);
-}
-
-void ObjectTrackingPipeline::poseCallback(
-    const geometry_msgs::PoseStamped &new_pose) {
-  pose_buffer_.addValue(new_pose);
+  if (FLAGS_publish_debug_images) {
+    tracker_.debugDrawTracks(&cv_ptr->image);
+    debug_image_publisher_.publish(cv_ptr->toImageMsg());
+  }
 }
 
 void ObjectTrackingPipeline::triangulateTracks(
@@ -87,7 +89,8 @@ void ObjectTrackingPipeline::triangulateTracks(
   aslam::Transformation T_B_C =
       vi_map::getSelectedNCamera(sensor_manager_)->get_T_C_B(0u).inverse();
   for (const Observation &observation : observations) {
-    VLOG(1) << "Add observation with ts " << observation.timestamp_.sec << "." << observation.timestamp_.nsec;
+    VLOG(2) << "Add observation with ts " << observation.timestamp_.sec
+            << "." << observation.timestamp_.nsec;
 
     tf::StampedTransform transform;
     try {

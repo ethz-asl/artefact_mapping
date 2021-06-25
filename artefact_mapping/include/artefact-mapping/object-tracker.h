@@ -55,6 +55,8 @@ private:
   std::unordered_map<unsigned, std::vector<Observation>> tracks_;
 
   std::queue<unsigned> finished_tracks_;
+
+  std::vector<int> detected_classes_;
 };
 
 #endif // OBJECT_TRACKER_OBJECT_TRACKER_H_

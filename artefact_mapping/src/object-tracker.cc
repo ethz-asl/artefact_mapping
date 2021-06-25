@@ -7,16 +7,39 @@
 DEFINE_string(
     darknet_cfg_path, "share/yolov3.cfg",
     "Darknet model config file path for the object tracker detections.");
-
 DEFINE_string(
     darknet_weights_path, "share/yolov3.weights",
     "Darknet model weights file path for the object tracker detections.");
+
+DEFINE_string(
+    darknet_classes, "0", "Comma separated list of classes to detect.");
+DEFINE_double(
+    darknet_detection_threshold, 0.4f,
+    "Object detection confidence threshold to start tracking or reassociate.");
+DEFINE_double(
+    darknet_nms_threshold, 0.45f,
+    "Darknet non maxima supression threshold.");
+DEFINE_double(
+    tracker_confidence_threshold, 0.8f,
+    "Confidence threshold at which a tracked object is considered lost.");
+DEFINE_double(
+    track_reassociation_iou, 0.3f,
+    "Intersection over union between existing track and new detection at which"
+    "the two will be reassociated and not made into a separate track.");
 
 ObjectTracker::ObjectTracker(unsigned detector_period)
     : frame_count_(0u), detector_period_(detector_period), last_track_id_(0u) {
   net = darknet::parse_network_cfg_custom(FLAGS_darknet_cfg_path.c_str(), 1, 1);
   darknet::load_weights(&net, FLAGS_darknet_weights_path.c_str());
   darknet::fuse_conv_batchnorm(net);
+
+  // Vector of classes to detect
+  std::stringstream ss(FLAGS_darknet_classes);
+  while(ss.good()) {
+    std::string substr;
+    std::getline(ss, substr, ',');
+    detected_classes_.push_back(std::stoi(substr));
+  }
 }
 
 ObjectTracker::~ObjectTracker() {
@@ -68,8 +91,8 @@ void ObjectTracker::processFrame(
     darknet::network_predict(net, im.data);
 
     int nboxes = 0;
-    float thresh = 0.4f;
-    float nms = 0.45f;
+    const float thresh = FLAGS_darknet_detection_threshold;
+    const float nms = FLAGS_darknet_nms_threshold;
     darknet::detection* dets = darknet::get_network_boxes(
         &net, frame_bgr.cols, frame_bgr.rows, thresh, 0.5f, 0, 1, &nboxes, 0);
     darknet::do_nms_sort(dets, nboxes, l.classes, nms);
@@ -90,11 +113,17 @@ void ObjectTracker::processFrame(
       }
 
       // Initialize tracker for each new detection.
-      if (cls == 0) {
-        LOG(INFO) << "Found with objectness: " << dets[i].objectness * 100
-                  << "\%"
-                  << " class " << cls << " (" << prob * 100 << "\%)"
-                  << std::endl;
+      bool found_class = false;
+      for (int detected_class : detected_classes_) {
+        if (detected_class == cls) {
+          found_class = true;
+          break;
+        }
+      }
+
+      if (found_class) {
+        VLOG(1) << "Found with objectness: " << dets[i].objectness * 100 << "\%"
+                << " class " << cls << " (" << prob * 100 << "\%)" << std::endl;
 
         int x_min = (dets[i].bbox.x - dets[i].bbox.w / 2) * frame_bgr.cols;
         int y_min = (dets[i].bbox.y - dets[i].bbox.h / 2) * frame_bgr.rows;
@@ -134,19 +163,20 @@ void ObjectTracker::processFrame(
           }
         }
 
-        if (best_iou < 0.3) {
+        if (best_iou < FLAGS_track_reassociation_iou) {
           // Create new track and tracker
           track_id = last_track_id_++;
           trackers_.emplace(
               track_id, std::unique_ptr<KCFTracker>(
-                            new KCFTracker(true, true, true, false, 0.8)));
+                            new KCFTracker(true, true, true, false,
+                            FLAGS_tracker_confidence_threshold)));
           track_heads_.emplace(track_id, ObjectView(track_id, cls, init_bbox));
         } else {
-          /*std::cout << "Re-initialised tracker " << track_id << " from: ["
-                    << prev_bbox.x << ", " << prev_bbox.y << ", "
-                    << prev_bbox.width << ", " << prev_bbox.height << "] to: ["
-                    << x_min << ", " << y_min << ", " << width << ", " << height
-                    << "] with IoU of " << best_iou << "." << std::endl;*/
+          VLOG(1) << "Re-initialised tracker " << track_id << " from: ["
+                  << prev_bbox.x << ", " << prev_bbox.y << ", "
+                  << prev_bbox.width << ", " << prev_bbox.height << "] to: ["
+                  << x_min << ", " << y_min << ", " << width << ", " << height
+                  << "] with IoU of " << best_iou << "." << std::endl;
           common::getChecked(track_heads_, track_id).setBBox(init_bbox);
         }
 
@@ -170,7 +200,7 @@ void ObjectTracker::debugDrawTracks(cv::Mat* frame_bgr) {
     cv::rectangle(
         *frame_bgr, cv::Point(bbox.x, bbox.y),
         cv::Point(bbox.x + bbox.width, bbox.y + bbox.height),
-        CV_RGB(0, 255, 0));
+        CV_RGB(0, 255, 0), 3);
   }
 }
 
@@ -181,11 +211,10 @@ bool ObjectTracker::getFinishedTrack(std::vector<Observation>* observations) {
 
   unsigned track_id = finished_tracks_.front();
 
-  const std::vector<Observation>& local_observations = common::getChecked(tracks_, track_id);
-  VLOG(2) << local_observations.size();
+  const std::vector<Observation>& local_observations =
+      common::getChecked(tracks_, track_id);
   for (const Observation& observation : local_observations) {
     observations->push_back(observation);
-    VLOG(2) << observation.getCentroid();
   }
 
   finished_tracks_.pop();
