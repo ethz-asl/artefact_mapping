@@ -23,15 +23,19 @@
 
 class Observation {
 public:
-  Observation(ros::Time timestamp, unsigned x, unsigned y)
-      : timestamp_(timestamp), x_(x), y_(y){};
+  Observation(ros::Time timestamp, unsigned x, unsigned y, int class_label)
+      : timestamp_(timestamp), x_(x), y_(y), class_label_(class_label) {};
   const Eigen::Vector2d getCentroid() const {
     Eigen::Vector2d centroid;
     centroid << x_, y_;
     return centroid;
   };
+  const int getClass() const {
+    return class_label_;
+  };
   ros::Time timestamp_;
   unsigned x_, y_;
+  int class_label_;
 };
 
 class ObjectTracker {
