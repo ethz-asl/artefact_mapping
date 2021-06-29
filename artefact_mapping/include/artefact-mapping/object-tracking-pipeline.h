@@ -6,6 +6,7 @@
 #include <atomic>
 #include <mutex>
 
+#include <artefact_msgs/Artefact.h>
 #include <aslam/common/pose-types.h>
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/Image.h>
@@ -24,6 +25,7 @@ private:
   ros::NodeHandle nh_;
   ros::Subscriber pose_subscriber_;
   ros::Publisher landmark_publisher_;
+  ros::Publisher artefact_publisher_;
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_subscriber_;
   image_transport::Publisher debug_image_publisher_;

@@ -65,7 +65,7 @@ void ObjectTracker::processFrame(
       finished_tracks_.emplace(track_id);
     } else {
       tracks_[track_id].emplace_back(Observation(
-          timestamp, bbox.x + bbox.width / 2, bbox.y + bbox.height / 2));
+          timestamp, bbox.x + bbox.width / 2, bbox.y + bbox.height / 2, -1));
     }
   }
 
@@ -184,7 +184,7 @@ void ObjectTracker::processFrame(
         trackers_[track_id]->init(init_bbox, frame_bgr);
         tracks_[track_id].emplace_back(Observation(
             timestamp, init_bbox.x + init_bbox.width / 2,
-            init_bbox.y + init_bbox.height / 2));
+            init_bbox.y + init_bbox.height / 2, cls));
       }
     }
 

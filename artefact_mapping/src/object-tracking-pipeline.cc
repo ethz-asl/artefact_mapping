@@ -39,8 +39,10 @@ ObjectTrackingPipeline::ObjectTrackingPipeline(ros::NodeHandle &node_handle)
   }
 
   landmark_publisher_ = nh_.advertise<geometry_msgs::PointStamped>("/W_landmark", 1);
+  artefact_publisher_ = nh_.advertise<artefact_msgs::Artefact>("/W_artefact", 1);
   tf_listener_ = new tf::TransformListener(
       ros::Duration(FLAGS_object_tracker_pose_buffer_length));
+
 
   // Load sensors.
   CHECK(!FLAGS_sensor_calibration_file.empty())
@@ -82,6 +84,8 @@ void ObjectTrackingPipeline::triangulateTracks(
   aslam::TransformationVector T_W_Bs;
   Aligned<std::vector, Eigen::Vector2d> normalized_measurements;
   normalized_measurements.reserve(observations.size());
+  std::vector<int> class_labels;
+  class_labels.reserve(observations.size());
 
   const aslam::Camera::ConstPtr camera =
       vi_map::getSelectedNCamera(sensor_manager_)->getCameraShared(0u);
@@ -118,6 +122,10 @@ void ObjectTrackingPipeline::triangulateTracks(
 
     T_W_Bs.emplace_back(T_W_B);
     normalized_measurements.emplace_back(normalized_measurement);
+    
+    if (observation.getClass() != -1) {
+      class_labels.emplace_back(observation.getClass());
+    }
   }
 
   Eigen::Vector3d W_landmark;
@@ -137,4 +145,12 @@ void ObjectTrackingPipeline::triangulateTracks(
   landmark_msg.point.y = W_landmark[1];
   landmark_msg.point.z = W_landmark[2];
   landmark_publisher_.publish(landmark_msg);
+  
+  artefact_msgs::Artefact artefact_msg;
+  artefact_msg.header = landmark_msg.header;
+  artefact_msg.landmark = landmark_msg;
+  std::sort(class_labels.begin(), class_labels.end()); // Report the most observed object class.
+  artefact_msg.class_label = (unsigned) class_labels[(int) class_labels.size()/2];
+  artefact_msg.quality = 0; // Placeholder, not implemented yet!
+  artefact_publisher_.publish(artefact_msg);
 }
