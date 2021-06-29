@@ -23,6 +23,9 @@ DEFINE_string(object_tracker_image_topic, "/camera/color/image_raw",
               "Ros topic on which the object detection and tracking happens");
 DEFINE_string(sensor_calibration_file, "share/camchain.yaml",
               "Path to sensor calibration yaml.");
+DEFINE_string(sensor_tf_frame, "/blackfly_right_optical_link",
+              "Camera TF frame.");
+DEFINE_string(odom_tf_frame, "/odom", "Odometry TF frame.");
 
 DEFINE_bool(publish_debug_images, false,
             "Whether to publish the debug image with tracking information.");
@@ -98,7 +101,7 @@ void ObjectTrackingPipeline::triangulateTracks(
 
     tf::StampedTransform transform;
     try {
-      tf_listener_->lookupTransform("/odom", "/blackfly_right_optical_link",
+      tf_listener_->lookupTransform(FLAGS_odom_tf_frame, FLAGS_sensor_tf_frame,
           observation.timestamp_, transform);
     }
     catch (tf::TransformException ex) {
@@ -122,7 +125,7 @@ void ObjectTrackingPipeline::triangulateTracks(
 
     T_W_Bs.emplace_back(T_W_B);
     normalized_measurements.emplace_back(normalized_measurement);
-    
+
     if (observation.getClass() != -1) {
       class_labels.emplace_back(observation.getClass());
     }
@@ -145,7 +148,7 @@ void ObjectTrackingPipeline::triangulateTracks(
   landmark_msg.point.y = W_landmark[1];
   landmark_msg.point.z = W_landmark[2];
   landmark_publisher_.publish(landmark_msg);
-  
+
   artefact_msgs::Artefact artefact_msg;
   artefact_msg.header = landmark_msg.header;
   artefact_msg.landmark = landmark_msg;
