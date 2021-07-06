@@ -1,0 +1,46 @@
+sensors:
+  - id: 412eab8e4058621f7036b5e765dfe812
+    sensor_type: NCAMERA
+    description: "SMB"
+    topic: ""
+    cameras:
+      - camera:
+          topic: /versavis/cam0/image_raw
+          description: "RGB camera"
+          id: 54812562fa109c40fe90b29a59dd7798
+          sensor_type: CAMERA
+          line-delay-nanoseconds: 0
+          image_height: 1080
+          image_width: 1440
+          type: pinhole
+          intrinsics:
+            cols: 1
+            rows: 4
+            data: [627.7059273918105, 627.3673975116307, 752.5902524736157, 555.9658406687556]
+          distortion:
+            type: equidistant
+            parameters:
+              cols: 1
+              rows: 4
+              data: [0.0015468942458299077, 0.016728510031055667, -0.012402919578346982,
+    0.0028225260226666755]
+        T_B_C:
+          cols: 4
+          rows: 4
+          data:
+            - [1.0, 0.0, 0.0, 0.0]
+            - [0.0, 1.0, 0.0, 0.0]
+            - [0.0, 0.0, 1.0, 0.0]
+            - [0.0, 0.0, 0.0, 1.0]
+
+extrinsics:
+  - sensor_id: 412eab8e4058621f7036b5e765dfe812
+    base_sensor_id: 412eab8e4058621f7036b5e765dfe812
+    T_B_S:
+      rows: 4
+      cols: 4
+      data:
+        - [1,0,0,0]
+        - [0,1,0,0]
+        - [0,0,1,0]
+        - [0,0,0,1]
