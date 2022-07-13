@@ -4,3 +4,9 @@
 [submodule "dependencies/kcf_catkin"]
 	path = dependencies/kcf_catkin
 	url = git@github.com:ethz-asl/kcf_catkin.git
+[submodule "dependencies/maplab"]
+	path = dependencies/maplab
+	url = git@github.com:ethz-asl/maplab.git
+[submodule "dependencies/pcl_catkin"]
+	path = dependencies/pcl_catkin
+	url = git@github.com:ethz-asl/pcl_catkin.git
