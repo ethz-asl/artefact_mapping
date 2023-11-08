@@ -12,7 +12,7 @@
 #include <vi-map/sensor-manager.h>
 #include <vi-map/sensor-utils.h>
 
-DEFINE_int64(object_tracker_detection_period, 20,
+DEFINE_int64(object_tracker_detection_period, 10,
              "Number of frames to skip between object detections");
 
 DEFINE_int64(object_tracker_pose_buffer_length_ns, 20e9,
@@ -20,7 +20,7 @@ DEFINE_int64(object_tracker_pose_buffer_length_ns, 20e9,
 
 DEFINE_string(object_tracker_image_topic, "/camera/color/image_raw",
               "Ros topic on which the object detection and tracking happens");
-DEFINE_string(sensor_calibration_file, "share/camchain.yaml", "Path to sensor calibration yaml.");
+DEFINE_string(sensor_calibration_file, "", "Path to sensor calibration yaml.");
 
 ObjectTrackingPipeline::ObjectTrackingPipeline(ros::NodeHandle &node_handle)
     : nh_(node_handle), it_(node_handle),
@@ -31,7 +31,7 @@ ObjectTrackingPipeline::ObjectTrackingPipeline(ros::NodeHandle &node_handle)
                     &ObjectTrackingPipeline::imageCallback, this);
   pose_subscriber_ = nh_.subscribe("/T_G_I", 1000u,
                                    &ObjectTrackingPipeline::poseCallback, this);
-  landmark_publisher_ = nh_.advertise<geometry_msgs::PointStamped>("/W_landmark", 1);
+  landmark_publisher_ = nh_.advertise<geometry_msgs::PointStamped>("/W_landmark", 1, true);
 
   // Load sensors.
   CHECK(!FLAGS_sensor_calibration_file.empty())
